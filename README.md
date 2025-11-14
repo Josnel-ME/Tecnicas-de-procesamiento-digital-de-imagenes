@@ -22,7 +22,7 @@ Para poder ejecutar y utilizar los notebooks de este repositorio, sigue estos pa
 
 1.  **Clonar el repositorio**:
     ```bash
-    git clone https://github.com/[Tu usuario]/[Tu repositorio].git
+    https://github.com/Josnel-ME/Tecnicas-de-procesamiento-digital-de-imagenes.git
     ```
 2.  **Abrir en Google Colab**:
       * Ve a Google Colab.
