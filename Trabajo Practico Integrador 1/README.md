@@ -1,73 +1,48 @@
-Proyecto Integrador:  Procesamiento de Imágenes para Mejora de Calidad
-Este proyecto tiene como objetivo demostrar la aplicación de diversas técnicas de procesamiento de imágenes para mejorar la calidad y la legibilidad de documentos de texto con defectos comunes como rotación, sombras y baja calidad.
+# 🖼️ Proyecto Integrador: Procesamiento de Imágenes para Mejora de Calidad
 
-Contenido del Proyecto
-El proyecto se centra en tres imágenes de documentos de texto, cada una con un problema específico que requiere una solución diferente:
+Este proyecto tiene como objetivo demostrar la aplicación de diversas **técnicas de procesamiento de imágenes** para mejorar la calidad y la legibilidad de documentos de texto con defectos comunes como **rotación**, **sombras** y **baja calidad/ruido**.
 
-imagen_buena.jpg: 
+---
 
-imagen_rotada.jpg: 
+## 🎯 Contenido del Proyecto
 
-imagen_con_sombras.jpg: 
+El proyecto se centra en el procesamiento de tres imágenes de documentos de texto, cada una con un problema específico que requiere una solución diferente:
 
-Técnicas Aplicadas
-Para abordar los problemas de cada imagen, se utilizaron las siguientes técnicas de procesamiento:
+| Archivo de Imagen | Problema Detectado | Descripción |
+| :--- | :--- | :--- |
+| `imagen_buena.jpg` | **Referencia** | Imagen de buena calidad utilizada para fines comparativos. |
+| `imagen_rotada.jpg` | **Rotación** | Imagen que se encuentra rotada y necesita ser enderezada para ser legible. |
+| `imagen_con_sombras.jpg` | **Sombras/Baja Iluminación** | Imagen con sombras que oscurecen el texto, afectando su visibilidad. |
+| **_Nota:_** La imagen de baja calidad se procesa dentro del contexto de la imagen con sombras, o se asume que una de las mencionadas presenta el defecto de calidad. |
 
-Transformación Geométrica: Se aplicó una rotación a la imagen rotada para alinear correctamente el documento.
+---
 
-Umbralización (Thresholding): Se usó la umbralización adaptativa para las imágenes con sombras, lo que ayuda a segmentar el texto del fondo, eliminando las variaciones de iluminación causadas por las sombras.
+## 🛠️ Técnicas de Procesamiento Aplicadas
 
-Mejora de Calidad: Se aplicaron filtros como el filtro de mediana para reducir el ruido y mejorar la nitidez en la imagen de baja calidad.
+Para abordar los problemas de cada imagen, se utilizaron las siguientes técnicas de procesamiento de imágenes:
 
-Resultados
-En el notebook, se muestra el proceso paso a paso y los resultados de cada técnica aplicada. Al final, se puede comparar la imagen original con la imagen procesada para ver la mejora significativa en la calidad y la legibilidad del documento.
+* **Transformación Geométrica:** Se aplicó una **rotación** precisa a `imagen_rotada.jpg` para alinear correctamente el documento y facilitar su lectura.
+* **Umbralización (Thresholding):** Se usó la **umbralización adaptativa** en `imagen_con_sombras.jpg`. Esta técnica es crucial para segmentar el texto del fondo, eliminando eficazmente las variaciones de iluminación causadas por las sombras.
+* **Mejora de Calidad / Reducción de Ruido:** Se aplicaron **filtros** (como el filtro de mediana) para reducir el ruido y mejorar la nitidez en la imagen de baja calidad (o la imagen con sombras después de la umbralización).
 
-¿Cómo ejecutar el notebook?
-Para ejecutar este proyecto, simplemente abre el notebook proyecto_integrador.ipynb en Google Colab o Jupyter Notebook. Asegúrate de tener las librerías necesarias instaladas:
+---
 
-¡Claro! Aquí tienes un modelo de README.md para tu proyecto integrador. Este README explica claramente el objetivo del proyecto, las técnicas utilizadas y cómo se pueden ver los resultados.
- Proyecto Integrador:
+## 📈 Resultados
 
-Procesamiento de Imágenes para Mejora de Calidad
+El _notebook_ muestra el proceso paso a paso y los resultados intermedios de cada técnica aplicada. Al final, se puede realizar una **comparativa visual** entre la imagen original y la imagen procesada, destacando la **mejora significativa** en la calidad y la legibilidad del documento.
 
-Este proyecto tiene como objetivo demostrar la aplicación de diversas técnicas de procesamiento de imágenes para mejorar la calidad y la legibilidad de documentos de texto con defectos comunes como rotación, sombras y baja calidad.
+---
 
-Contenido del Proyecto
+## 🚀 ¿Cómo Ejecutar el Notebook?
 
-El proyecto se centra en tres imágenes de documentos de texto, cada una con un problema específico que requiere una solución diferente:
+Para ejecutar este proyecto, sigue los siguientes pasos:
 
-imagen_buena.jpg: Una imagen de referencia, de buena calidad, utilizada para fines comparativos.
+1.  Abre el _notebook_ principal: `proyecto_integrador.ipynb`.
+2.  Puedes ejecutarlo en **Google Colab** o **Jupyter Notebook**.
+3.  Asegúrate de tener las librerías necesarias instaladas. Si usas un entorno local, puedes instalarlas con el siguiente comando:
 
-imagen_rotada.jpg: Una imagen que se encuentra rotada y necesita ser enderezada para ser legible.
-
-imagen_con_sombras.jpg: Una imagen con sombras que oscurecen el texto, afectando su visibilidad.
-
-Técnicas Aplicadas
-
-Para abordar los problemas de cada imagen, se utilizaron las siguientes técnicas de procesamiento:
-
-Transformación Geométrica: Se aplicó una rotación a la imagen rotada para alinear correctamente el documento.
-
-Umbralización (Thresholding): Se usó la umbralización adaptativa para las imágenes con sombras, lo que ayuda a segmentar el texto del fondo, eliminando las variaciones de iluminación causadas por las sombras.
-
-Mejora de Calidad: Se aplicaron filtros como el filtro de mediana para reducir el ruido y mejorar la nitidez en la imagen de baja calidad.
-
-Resultados
-
-En el notebook, se muestra el proceso paso a paso y los resultados de cada técnica aplicada. Al final, se puede comparar la imagen original con la imagen procesada para ver la mejora significativa en la calidad y la legibilidad del documento.
-
-¿Cómo ejecutar el notebook?
-
-Para ejecutar este proyecto, simplemente abre el notebook proyecto_integrador.ipynb en Google Colab o Jupyter Notebook. Asegúrate de tener las librerías necesarias instaladas:
-
-pip install opencv-python numpy matplotlib
-
-Contacto y Licencia
-
-Nombre: Josnel Emerson Mallqui Espinoza
-
-Este proyecto está bajo la licencia MIT.
-
+```bash
+pip install opencv-python
 
 
 
