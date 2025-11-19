@@ -1,0 +1,11 @@
+# Configuración de Restauracion-Imagenes
+api_keys:
+  gemini: "YOUR_GEMINI_API_KEY"
+  diffusion: "YOUR_DIFFUSION_API_KEY"
+  ip_adapter: "YOUR_IPADAPTER_API_KEY"
+
+model_paths:
+  stable_diffusion: "path/to/stable-diffusion"
+  controlnet_canny: "path/to/controlnet-canny"
+  controlnet_depth: "path/to/controlnet-depth"
+  ip_adapter: "path/to/ip-adapter"

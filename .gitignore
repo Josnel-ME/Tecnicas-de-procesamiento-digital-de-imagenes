@@ -1,0 +1,8 @@
+# API keys, checkpoints, and sensitive files
+config/config.yaml
+*.ckpt
+*.pt
+*.pth
+.env
+# Ignorar el directorio del entorno virtual
+venv/

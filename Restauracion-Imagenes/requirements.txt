@@ -1,0 +1,9 @@
+streamlit
+diffusers
+transformers
+torch
+opencv-python
+Pillow
+open_clip_torch
+requests
+pyyaml
