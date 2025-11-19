@@ -1,73 +1,83 @@
 # models/segmentation.py
+# models/segmentation.py
 
 from transformers import DetrForSegmentation, DetrImageProcessor
 from PIL import Image
 import torch
 import numpy as np
 import cv2
+import logging
 
-# Cargar el modelo de segmentación (Panoptic Segmentation)
-# Mantenemos las cargas del modelo fuera de la función para mayor eficiencia
-processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50-panoptic")
-model = DetrForSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic")
+# Silenciar advertencias técnicas
+logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+
+# Cargar modelos
+try:
+    print("Cargando modelos DETR...")
+    processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50-panoptic")
+    model = DetrForSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic")
+    print("Modelos cargados.")
+except Exception as e:
+    print(f"Error cargando modelos DETR: {e}")
 
 def get_person_mask(image: Image.Image) -> np.ndarray:
     """
-    Genera una máscara binaria para la persona usando DETR (Hugging Face).
-    
-    Returns:
-        np.ndarray: Máscara binaria (0 o 255) del tamaño de la imagen.
+    Genera una máscara binaria para la persona usando DETR.
+    SOLUCIÓN FINAL: Usa una lista de tuplas estándar de Python para target_sizes.
     """
+    # 1. Asegurar formato RGB
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    # 2. Preparar inputs
     inputs = processor(images=image, return_tensors="pt")
-
-    # Mover el input al dispositivo correcto si usas GPU
+    
+    # 3. Mover a GPU si está disponible
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    inputs = {k: v.to(device) for k, v in inputs.items()}
     model.to(device)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
 
+    # 4. Inferencia
     with torch.no_grad():
         outputs = model(**inputs)
 
-    # 1. Post-procesamiento para obtener la segmentación panóptica
-    panoptic_output = processor.post_process_panoptic_segmentation(
-        outputs, 
-        target_sizes=[image.size[::-1]] # (altura, ancho)
-    )[0]
-    
-    # ID de la categoría "persona" en el dataset COCO (común para este modelo)
-    person_id = 1 
-    
-    # 2. Extraer el mapa de segmentación (donde cada píxel tiene un ID de segmento)
-    mask_array = np.array(panoptic_output['segmentation'])
-    
-    # 3. Inicializar la máscara final
-    person_mask = np.zeros_like(mask_array, dtype=np.uint8)
-    
-    # 4. Iterar sobre la información de los segmentos
-    for segment in panoptic_output['segments_info']:
-        
-        # --- CORRECCIÓN CLAVE: Usar 'label_id' o 'id' ---
-        # El campo que contiene la ID de la clase de COCO (1=persona) es a menudo 'label_id' o 'id'.
-        # Usaremos 'label_id' que es más estándar en el output post-procesado.
-        
-        # Verificar si la clave 'label_id' existe y si corresponde a la persona
-        if 'label_id' in segment and segment['label_id'] == person_id:
-            
-            # Obtener el ID del segmento específico del mapa de segmentación
-            segment_id = segment['id']
-            
-            # Crear una máscara binaria para este segmento específico
-            mask_segment = (mask_array == segment_id).astype(np.uint8) * 255
-            
-            # Sumar esta máscara al resultado final (bitwise_or)
-            person_mask = cv2.bitwise_or(person_mask, mask_segment)
-        
-        elif 'category_id' in segment and segment['category_id'] == person_id:
-             # Este es el caso que originalmente buscabas, lo mantenemos como fallback/check
-            segment_id = segment['id']
-            mask_segment = (mask_array == segment_id).astype(np.uint8) * 255
-            person_mask = cv2.bitwise_or(person_mask, mask_segment)
+    # --- CORRECCIÓN CRÍTICA ---
+    # En lugar de usar torch.tensor, usamos una lista de tuplas simple.
+    # Esto evita que la librería interna cree una "lista de tensores" que rompe PyTorch.
+    # image.size es (Ancho, Alto), necesitamos (Alto, Ancho)
+    height, width = image.size[1], image.size[0]
+    target_sizes = [(height, width)]
+    # --------------------------
 
-    # El post-procesamiento de DETR ya debería retornar la máscara del tamaño correcto
-    # Retornamos la máscara binaria (0 o 255)
+    # 5. Post-procesamiento
+    try:
+        results = processor.post_process_panoptic_segmentation(
+            outputs, 
+            target_sizes=target_sizes
+        )[0]
+    except Exception as e:
+        print(f"Error en post-procesamiento: {e}")
+        # Fallback de emergencia: devolver máscara vacía para no romper la app
+        return np.zeros((height, width), dtype=np.uint8)
+
+    # 6. Generar máscara binaria
+    mask_array = results["segmentation"].cpu().numpy()
+    segments_info = results["segments_info"]
+
+    person_id = 1 
+    person_mask = np.zeros_like(mask_array, dtype=np.uint8)
+    found_person = False
+
+    for segment in segments_info:
+        label = segment.get('label_id', segment.get('category_id'))
+        
+        if label == person_id:
+            segment_id = segment['id']
+            current_mask = (mask_array == segment_id).astype(np.uint8) * 255
+            person_mask = cv2.bitwise_or(person_mask, current_mask)
+            found_person = True
+
+    if not found_person:
+        print("⚠️ Aviso: No se detectó persona en la imagen.")
+
     return person_mask

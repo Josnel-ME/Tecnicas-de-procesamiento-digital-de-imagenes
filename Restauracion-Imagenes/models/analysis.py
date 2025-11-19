@@ -51,25 +51,42 @@ def analyze_images(original_img, enhanced_img, prompt):
             clip_score = similarity
 
     # --- Estructura (bordes Canny) ---
-    def get_canny_edges(img):
+    def get_canny_edges(img: Image.Image, target_size: tuple = None):
+        """Calcula bordes Canny. Reescala si se especifica target_size."""
+        
+        # Si la imagen mejorada es más grande, la reescalamos para el análisis
+        if target_size and img.size != target_size:
+            img = img.resize(target_size, Image.Resampling.LANCZOS)
+            
         arr = np.array(img.convert('L'))
         edges = cv2.Canny(arr, 100, 200)
         return edges
-    edges_orig = get_canny_edges(original_img)
-    edges_enh = get_canny_edges(enhanced_img)
-    # Similitud estructural: porcentaje de píxeles de borde coincidentes
+
+
+# Usar el tamaño de la imagen original como referencia
+    target_size_orig = original_img.size
+    
+    edges_orig = get_canny_edges(original_img, target_size=target_size_orig)
+    # Reescalar la imagen mejorada a la escala de la original ANTES de calcular Canny
+    edges_enh = get_canny_edges(enhanced_img, target_size=target_size_orig) 
+    
+    # Ambos arrays ahora tienen el mismo tamaño, ¡el broadcasting funcionará!
     intersection = np.logical_and(edges_orig, edges_enh)
     union = np.logical_or(edges_orig, edges_enh)
+    
     if np.sum(union) == 0:
         estructura_score = 1.0
     else:
         estructura_score = np.sum(intersection) / np.sum(union)
+    
     estructura = f"Similitud de bordes: {estructura_score:.2f}"
 
     return {
         'iluminacion': iluminacion,
-        'identidad': 'Pendiente',
+        'identidad': 'Pendiente', # Requiere InstantID/IP-Adapter
         'estructura': estructura,
-        'artefactos': 'Pendiente',
+        'artefactos': 'Pendiente', # Requiere métrica de artefactos
         'clip_score': clip_score
     }
+
+
