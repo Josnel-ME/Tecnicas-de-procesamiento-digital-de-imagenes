@@ -54,7 +54,7 @@ def upscale_realesrgan(img: Image.Image, scale=2, model_path="RealESRGAN_x2plus.
         upsampler = RealESRGANer(
             scale=scale,
             model_path=model_path,
-            model=model,       # <--- AQUÍ PASAMOS EL MODELO CREADO
+            model=model,       
             dni_weight=None,
             device=device
         )
