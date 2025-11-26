@@ -1,13 +1,18 @@
+# Aplicación de Restauración con RealESRGAN + Stable Diffusion
+# Archivo: app.py
 
 import streamlit as st
 from PIL import Image
 import os
 from dotenv import load_dotenv
 
-# Importar modelos y utilidades
+# Modelos propios
 from models.diffusion import process_image
 from models.analysis import analyze_images
-from models.segmentation import get_person_mask 
+from models.segmentation import get_person_mask
+from models.realesrgan_upscale import upscale_realesrgan
+
+# Utilidades
 from utils.image_utils import (
     extract_control_maps,
     extract_face_embedding,
@@ -16,93 +21,103 @@ from utils.image_utils import (
     adjust_sharpness
 )
 
-# Cargar variables de entorno
 load_dotenv()
 
-# Configuración de la página
-st.set_page_config(page_title="Restauración con IA", layout="wide")
-
-def show_images_side_by_side(img_orig, img_proc, caption_orig="Original", caption_proc="Procesada"):
-    col1, col2 = st.columns(2)
-    with col1:
-        st.image(img_orig, caption=caption_orig, use_column_width=True)
-    with col2:
-        st.image(img_proc, caption=caption_proc, use_column_width=True)
-
-# --- Inicio de la App ---
-st.title('✨ Sistema de Restauración y Mejora de Imágenes')
-st.markdown("""
-Esta herramienta permite restaurar fotos antiguas o de baja calidad utilizando 
-**Modelos de Difusión** y verificando el resultado con **Visión por Computadora**.
-""")
+st.set_page_config(page_title="Restauración Avanzada", layout="wide")
+st.title("📸 Restauración Inteligente de Imágenes (RealESRGAN + Stable Diffusion)")
 
 # Sidebar
 with st.sidebar:
-    st.header("Configuración")
-    prompt = st.text_input('Prompt de mejora', 'High quality, realistic, 8k, sharp focus, professional photography')
-    intensity = st.slider('Intensidad de la IA (Denoising Strength)', 0.1, 1.0, 0.4, help="Valores bajos conservan más la original. Valores altos inventan más detalles.")
-    
-    st.divider()
-    st.subheader("Pre-procesamiento (PDI)")
+    st.header("Configuración IA")
+    prompt = st.text_input(
+        "Prompt de mejora",
+        "High quality, realistic, 8k, sharp focus, clean details"
+    )
+    intensity = st.slider(
+        "Intensidad Stable Diffusion (Denoising)",
+        0.1, 1.0, 0.45,
+        help="Valores bajos conservan más la imagen original."
+    )
+
+    st.subheader("Preprocesamiento clásico")
     brightness_factor = st.slider("Brillo", 0.5, 1.5, 1.0, 0.05)
     sharpness_factor = st.slider("Nitidez", 0.0, 3.0, 1.5, 0.1)
 
-uploaded_file = st.file_uploader('Sube una imagen', type=['jpg', 'jpeg', 'png'])
+uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
-    # 1. Cargar imagen
     img_original = Image.open(uploaded_file).convert("RGB")
-    
-    # 2. Pre-procesamiento (PDI clásico en tiempo real)
+
+    # Pre-procesamiento
     img_adjusted = adjust_brightness(img_original, brightness_factor)
     img_clean = adjust_sharpness(img_adjusted, sharpness_factor)
 
-    # Mostrar estado actual
-    st.subheader("1. Imagen Original vs Pre-procesada")
-    show_images_side_by_side(img_original, img_clean, "Original", "Entrada para la IA (Brillo/Nitidez ajustados)")
+    st.subheader("1️⃣ Original vs Imagen Preprocesada")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image(img_original, caption="Original", use_column_width=True)
+    with col2:
+        st.image(img_clean, caption="Preprocesada", use_column_width=True)
 
-    # Botón para ejecutar la IA (costoso, por eso usamos botón)
-    if st.button("🚀 Procesar con Inteligencia Artificial"):
-        
-        with st.status("Procesando imagen...", expanded=True) as status:
-            
-            # 3. Segmentación (Análisis Visual)
-            st.write("🔍 Detectando personas y analizando estructura...")
-            person_mask = get_person_mask(img_clean)
-            # Estos son placeholders requeridos por tu lógica actual
-            control_maps = extract_control_maps(img_clean)
-            face_embedding = extract_face_embedding(img_clean)
+    if st.button("🚀 Restaurar Imagen"):
+        with st.status("Procesando...", expanded=True) as status:
 
-            # 4. Difusión (Stable Diffusion)
-            st.write("🎨 Generando detalles con Stable Diffusion...")
-            enhanced_img_local = process_image(
-                img_clean, prompt, intensity, control_maps, face_embedding, person_mask
+            st.write("🔧 **RealESRGAN: Restauración real antes de la IA**")
+            restored_img = upscale_realesrgan(img_clean, scale=2)
+
+            st.write("🔍 Segmentando la imagen... (DETR)")
+            person_mask = get_person_mask(restored_img)
+
+            control_maps = extract_control_maps(restored_img)
+            face_embedding = extract_face_embedding(restored_img)
+
+            st.write("🎨 **Stable Diffusion: reconstruyendo detalles**")
+            sd_img = process_image(
+                restored_img,
+                prompt,
+                intensity,
+                control_maps,
+                face_embedding,
+                person_mask
             )
 
-            # 5. Super-Resolución (Real-ESRGAN)
-            st.write("📐 Aumentando resolución (Upscaling)...")
-            final_enhanced_img = upscale_image(enhanced_img_local)
-            
-            # 6. Análisis final
-            st.write("📊 Calculando métricas de calidad...")
-            analysis = analyze_images(img_clean, final_enhanced_img, prompt)
-            
-            status.update(label="¡Procesamiento completado!", state="complete", expanded=False)
+            st.write("📐 Upscaling final (RealESRGAN local)")
+            # Usamos el mismo modelo local que en el paso 1
+            final_img = upscale_realesrgan(sd_img, scale=2)
 
-        # 7. Resultados Finales
-        st.markdown("---")
+            st.write("📊 Analizando calidad...")
+            analysis = analyze_images(restored_img, final_img, prompt)
+
+            status.update(label="✔ Restauración completa", state="complete", expanded=False)
+
         st.header("Resultado Final")
-        show_images_side_by_side(img_original, final_enhanced_img, "Original", "Restaurada con IA")
-        
-        # 8. Panel de Análisis
-        st.markdown("### 📊 Análisis de Calidad (Visión por Computadora)")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(img_original, caption="Original", use_column_width=True)
+        with col2:
+            st.image(final_img, caption="Restaurada", use_column_width=True)
+
+        # Panel de métricas
+        st.subheader("📊 Análisis de Calidad (Visión por Computadora)")
+
         col_a, col_b, col_c = st.columns(3)
+
         with col_a:
-            st.info(f"**Estructura (Canny):**\n{analysis['estructura']}")
+            st.info(f"**Estructura (Canny):** {analysis['estructura']}")
+
         with col_b:
-            st.success(f"**Similitud Semántica (CLIP):**\n{analysis.get('clip_score', 'N/A'):.4f}")
+            clip_score = analysis.get("clip_score")
+            if clip_score is None:
+                st.warning("CLIP Score no disponible")
+            else:
+                st.success(f"CLIP Score: {clip_score:.4f}")
+
         with col_c:
-            st.warning(f"**Análisis de Luz:**\n{analysis['iluminacion']}")
-            
-        # Opción de descarga
-        st.download_button("Descargar Imagen Procesada", data=final_enhanced_img.tobytes(), file_name="restaurada.png", mime="image/png")
+            st.info(f"**Iluminación:** {analysis['iluminacion']}")
+
+        st.download_button(
+            "Descargar Imagen Restaurada",
+            data=final_img.tobytes(),
+            file_name="restaurada.png",
+            mime="image/png"
+        )

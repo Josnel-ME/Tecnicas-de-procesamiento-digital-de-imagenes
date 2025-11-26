@@ -1,9 +1,31 @@
-streamlit
-diffusers
-transformers
-torch
-opencv-python
+# CORE
+numpy==1.26.4
 Pillow
+opencv-python
+
+# STREAMLIT
+streamlit==1.28.0
+
+# TORCH COMPATIBLE (CPU)
+torch==2.0.1
+torchvision==0.15.2
+torchaudio==2.0.2
+
+# DIFFUSERS / STABLE DIFFUSION
+diffusers==0.27.2
+transformers==4.36.2
+accelerate==0.25.0
+safetensors
+
+# CLIP
 open_clip_torch
+
+# REAL ESRGAN OFICIAL (usa basicsr)
+git+https://github.com/xinntao/Real-ESRGAN.git
+basicsr==1.4.2
+facexlib==0.3.0
+
+# SEGMENTATION (DETR)
+torchvision==0.15.2
 requests
 pyyaml
