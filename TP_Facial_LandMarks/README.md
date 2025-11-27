@@ -88,8 +88,8 @@ Esto abrirá la aplicación web en tu navegador predeterminado (normalmente en `
 
 Para consultas o sugerencias relacionadas con la implementación del detector de landmarks faciales:
 
-* **Nombre:** Raquel Malqui Espinoza
-* **Email:** 93854950@ifts24.edu.ar
+* **Nombre:** Josnel Malqui Espinoza
+* **Email:** 93854948@ifts24.edu.ar
 
 ### Licencia
 
